@@ -1,8 +1,27 @@
-import Entity from './entity';
+import { Entity } from './entity.js';
 
 class Ball extends Entity {
     constructor(width, height, color) {
         super(width, height, color);
+    }
+
+    colideWith(entity) {
+        let colideVert =
+            this.getPositionY() + this.getSpeedY() >= entity.getPositionY();
+        
+        let colideHor =
+            this.getPositionX() + this.getSpeedX() >= entity.getPositionX() &&
+            this.getPositionX() + this.getSpeedX() <= entity.getPositionX() + entity.getWidth();
+        
+        if (colideVert && colideHor) return true;
+        return false;
+      }
+
+    init(posX, posY, spdX, spdY) {
+        this.setPositionX(posX);
+        this.setPositionY(posY);
+        this.setSpeedX(spdX);
+        this.setSpeedY(spdY);
     }
 
     render(context) {
@@ -19,7 +38,7 @@ class Ball extends Entity {
         this.setPositionX(this.getPositionX() + this.getSpeedX());
         this.setPositionY(this.getPositionY() + this.getSpeedY());
         
-        if (this.getPositionX() > 400 || this.getPositionY() <= 0) {
+        if (this.getPositionX() >= 400 || this.getPositionX() <= 0) {
             this.setSpeedX(this.getSpeedX() * -1);
         }
 
@@ -29,4 +48,4 @@ class Ball extends Entity {
     }
 }
 
-export default Ball;
+export { Ball };
