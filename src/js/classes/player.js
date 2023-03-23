@@ -9,8 +9,17 @@ class Player extends Entity {
         document.onkeydown = event => this.update(event.key);
     }
 
-    init(posX, posY, spdX, spdY) {
-        this.#setKeyboardListener();
+    #setMouseListener(canvas) {
+        canvas.addEventListener('mousemove', (event) => {
+            let rect = canvas.getBoundingClientRect();
+            let root = document.documentElement;
+
+            this.update(event.clientX - rect.left - root.scrollLeft);
+        })
+    }
+
+    init(posX, posY, spdX, spdY, canvas) {
+        this.#setMouseListener(canvas);
         this.setPositionX(posX);
         this.setPositionY(posY);
         this.setSpeedX(spdX);
@@ -27,26 +36,16 @@ class Player extends Entity {
       );
     }
 
-    update(key) {
-      switch(key) {
-          case 'ArrowRight':
-              let playerPosition = this.getPositionX() + this.getWidth(); 
-              if (playerPosition + this.getSpeedX() > 400) {
-                  this.setPositionX(400 - this.getWidth());
-              } else {
-                  this.setPositionX(this.getPositionX() + this.getSpeedX());
-              }
-              break;
-          case 'ArrowLeft':
-              if (this.getPositionX() - this.getSpeedX() >= 0) {
-                  this.setPositionX(this.getPositionX() - this.getSpeedX());
-              } else {
-                  this.setPositionX(0);
-              }
-              break;
-          default:
-              return;
-      }
+    update(mousePositionX) {
+        if (mousePositionX === undefined) return;
+
+        if (mousePositionX >= 400 - this.getWidth()/2) {
+            this.setPositionX(400 - this.getWidth());
+        } else if (mousePositionX <=this.getWidth()/2) {
+            this.setPositionX(0);
+        } else {
+            this.setPositionX(mousePositionX - this.getWidth()/2);
+        }
     }
 }
 

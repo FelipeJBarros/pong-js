@@ -26,7 +26,7 @@ window.onload = function () {
 	canvas = document.getElementById("gameCanvas");
 	canvasContext = canvas.getContext("2d");
 	
-	player.init(canvas.width / 2 - 75, canvas.height - 50, 20, 0);
+	player.init(canvas.width / 2 - 75, canvas.height - 50, 20, 0, canvas);
 	ball.init(canvas.width / 2, canvas.height / 2, 10, 10);
 	
 	let FPS = 30;
