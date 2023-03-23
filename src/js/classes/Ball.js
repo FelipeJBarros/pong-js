@@ -1,8 +1,11 @@
 import { Entity } from './entity.js';
 
 class Ball extends Entity {
-    constructor(width, height, color) {
-        super(width, height, color);
+    #radius;
+
+    constructor(radius, color) {
+        super(2 * radius, 2 * radius, color);
+        this.#radius = radius;
     }
 
     colideWith(entity) {
@@ -26,12 +29,14 @@ class Ball extends Entity {
 
     render(context) {
         context.fillStyle = this.getColor();
-        context.fillRect(
+        context.beginPath();
+        context.arc(
             this.getPositionX(),
             this.getPositionY(),
-            this.getWidth(),
-            this.getHeight(),
-        );
+            this.getRadius(),
+            0, Math.PI * 2, true
+        )
+        context.fill();
     }
 
     update() {
@@ -45,6 +50,10 @@ class Ball extends Entity {
         if (this.getPositionY() >= 600 || this.getPositionY() <= 0) {
             this.setSpeedY(this.getSpeedY() * -1);
         }
+    }
+
+    getRadius() {
+        return this.#radius;
     }
 }
 
