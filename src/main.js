@@ -8,10 +8,14 @@ const ball = new Ball(8, '#DEDEDE');
 
 function move() {
     if(ball.colideWith(player)) {
-      ball.setSpeedY(ball.getSpeedY() * -1)
+		ball.setSpeedY(ball.getSpeedY() * -1)
+		if (player.getDirection() > 0) {
+			ball.setSpeedX(Math.abs(ball.getSpeedX()))
+		} else if(player.getDirection() < 0) {
+			ball.setSpeedX(Math.abs(ball.getSpeedX())*-1)
+		}
     } 
     ball.update();
-    player.update();
 }
 
 function draw() {

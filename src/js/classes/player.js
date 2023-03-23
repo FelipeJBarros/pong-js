@@ -1,8 +1,10 @@
 import { Entity } from './entity.js';
 
 class Player extends Entity {
+    #direction;
     constructor(width, height, color) {
         super(width, height, color);
+        this.#direction = 0;
     }
 
     #setKeyboardListener() {
@@ -14,6 +16,7 @@ class Player extends Entity {
             let rect = canvas.getBoundingClientRect();
             let root = document.documentElement;
 
+            this.setDirection(Math.sign(event.movementX));
             this.update(event.clientX - rect.left - root.scrollLeft);
         })
     }
@@ -46,6 +49,14 @@ class Player extends Entity {
         } else {
             this.setPositionX(mousePositionX - this.getWidth()/2);
         }
+    }
+
+    getDirection() {
+        return this.#direction;
+    }
+
+    setDirection(direction) {
+        this.#direction = direction;
     }
 }
 

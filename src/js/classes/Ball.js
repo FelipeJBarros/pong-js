@@ -10,11 +10,12 @@ class Ball extends Entity {
 
     colideWith(entity) {
         let colideVert =
-            this.getPositionY() + this.getSpeedY() >= entity.getPositionY();
+            this.getPositionY() > entity.getPositionY() &&
+            this.getPositionY() < entity.getPositionY() + entity.getHeight();
         
         let colideHor =
-            this.getPositionX() + this.getSpeedX() >= entity.getPositionX() &&
-            this.getPositionX() + this.getSpeedX() <= entity.getPositionX() + entity.getWidth();
+            this.getPositionX() > entity.getPositionX() &&
+            this.getPositionX() < entity.getPositionX() + entity.getWidth();
         
         if (colideVert && colideHor) return true;
         return false;
