@@ -7,10 +7,6 @@ class Player extends Entity {
         this.#direction = 0;
     }
 
-    #setKeyboardListener() {
-        document.onkeydown = event => this.update(event.key);
-    }
-
     #setMouseListener(canvas) {
         canvas.addEventListener('mousemove', (event) => {
             let rect = canvas.getBoundingClientRect();

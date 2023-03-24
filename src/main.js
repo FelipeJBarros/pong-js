@@ -1,10 +1,12 @@
 import { Ball } from "./js/classes/ball.js";
 import { Player } from "./js/classes/player.js";
+import { Enemy } from "./js/classes/enemy.js";
 
 let canvas, canvasContext;
 
 const player = new Player(120, 20, "#6E3EFA");
 const ball = new Ball(8, '#DEDEDE');
+const enemy = new Enemy(120, 20, "#6E3EFA", 0.4);
 
 function move() {
     if(ball.colideWith(player)) {
@@ -14,8 +16,13 @@ function move() {
 		} else if(player.getDirection() < 0) {
 			ball.setSpeedX(Math.abs(ball.getSpeedX())*-1)
 		}
-    } 
-    ball.update();
+	}
+	
+	if (ball.colideWith(enemy)) {
+		ball.setSpeedY(ball.getSpeedY() * -1);
+	}
+	ball.update();
+	enemy.update(ball.getPositionX());
 }
 
 function draw() {
@@ -24,6 +31,7 @@ function draw() {
 
 	ball.render(canvasContext);
 	player.render(canvasContext);
+	enemy.render(canvasContext);
 }
 
 window.onload = function () {
@@ -31,6 +39,7 @@ window.onload = function () {
 	canvasContext = canvas.getContext("2d");
 	
 	player.init(canvas.width / 2 - 75, canvas.height - 50, 20, 0, canvas);
+	enemy.init(canvas.width / 2 - enemy.getWidth()/2, 50, 20, 0);
 	ball.init(canvas.width / 2, canvas.height / 2, 10, 10);
 	
 	let FPS = 30;
