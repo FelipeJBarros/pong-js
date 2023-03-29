@@ -3,11 +3,16 @@ import { Player } from "./js/classes/player.js";
 import { Enemy } from "./js/classes/enemy.js";
 
 let canvas, canvasContext;
+let points = {
+  player: 0,
+  enemy: 0,
+};
 
 const CTE = {
   //General:
   DEBUG: false,
   FPS: 60,
+  SPACING: 10,
 
   // Canvas:
   CANVAS_WIDTH: 400,
@@ -21,17 +26,16 @@ const CTE = {
   ENEMY_PRECISION: 0.4,
 
   //Palette:
-  PRIMARY_COLOR: "#6E3EFA",
-  SECONDARY_COLOR: "#DEDEDE",
+  PRIMARY_COLOR: "#DEDEDE",
   CONTRAST_COLOR: "#343434",
 
   // Fonts:
   DEBUG_FONTS: "20px Poppins, sans-serif",
 };
 
-const player = new Player(120, 20, "#6E3EFA");
+const player = new Player(120, 20, CTE.PRIMARY_COLOR);
 const ball = new Ball(8, "#DEDEDE");
-const enemy = new Enemy(120, 20, "#6E3EFA", 0.4);
+const enemy = new Enemy(120, 20, CTE.PRIMARY_COLOR, 0.4);
 
 function move() {
   if (ball.colideWith(player)) {
@@ -54,9 +58,35 @@ function move() {
   enemy.update(ball.getPositionX());
 }
 
-function draw() {
-  canvasContext.fillStyle = "#333";
+// --- GAME AUXILIAR FUNCTIONS -------------------------------- //
+function drawClassicPongField() {
+  canvasContext.fillStyle = CTE.CONTRAST_COLOR;
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+  canvasContext.beginPath();
+  canvasContext.setLineDash([CTE.CANVAS_WIDTH / 20]);
+  canvasContext.moveTo(10, CTE.CANVAS_HEIGHT / 2 + 5);
+  canvasContext.lineTo(CTE.CANVAS_WIDTH, CTE.CANVAS_HEIGHT / 2 + 5);
+
+  canvasContext.strokeStyle = CTE.PRIMARY_COLOR;
+  canvasContext.lineWidth = 10;
+
+  canvasContext.stroke();
+}
+
+function drawPoints() {
+  canvasContext.fillStyle = CTE.PRIMARY_COLOR;
+  canvasContext.font = "bold 80px Courier New";
+
+  canvasContext.fillText("1", 10, 70);
+  canvasContext.fillText("1", CTE.CANVAS_WIDTH - 55, CTE.CANVAS_HEIGHT - 20);
+}
+
+// --- GAME MAIN FUNCTIONS ------------------------------------ //
+
+function draw() {
+  drawClassicPongField();
+  drawPoints();
 
   ball.render(canvasContext);
   player.render(canvasContext);
@@ -78,10 +108,9 @@ window.onload = function () {
   enemy.init(canvas.width / 2 - enemy.getWidth() / 2, 50, 20, 0);
   ball.init(canvas.width / 2, canvas.height / 2, 7, 7);
 
-  let FPS = 60;
   setInterval(() => {
     move();
     draw();
     CTE.DEBUG && debug();
-  }, 1000 / FPS);
+  }, 1000 / CTE.FPS);
 };
