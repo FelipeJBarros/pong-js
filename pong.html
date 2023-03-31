@@ -20,6 +20,7 @@
       DEBUG: false,
       FPS: 60,
       SPACING: 10,
+      MAX_POINTS: 5,
 
       // Canvas:
       CANVAS_WIDTH: 700,
@@ -36,7 +37,7 @@
       PADDLE_BASE_SPEED: 20,
 
       //"AI":
-      ENEMY_PRECISION: 0.4,
+      ENEMY_PRECISION: 0.6,
 
       //Palette:
       PRIMARY_COLOR: "#DEDEDE",
@@ -170,7 +171,7 @@
         this.setSpeedY(escapeSpeed);
       }
 
-      #resetBallStatus() {
+      resetBallStatus() {
         let previusDirectionSign = Math.sign(this.getSpeedX());
         let newVerticalDirection = this.getRandomWithin(0, 1) > 0.5 ? 1 : -1;
         this.setPositionX(CTE.CANVAS_WIDTH / 2);
@@ -180,13 +181,6 @@
       }
 
       #verifyWallColision() {
-        if (
-          this.getPositionX() >= CTE.CANVAS_WIDTH ||
-          this.getPositionX() <= 0
-        ) {
-          this.#resetBallStatus();
-        }
-
         if (
           this.getPositionY() >= CTE.CANVAS_HEIGHT ||
           this.getPositionY() <= 0
@@ -328,7 +322,9 @@
   </script>
   <script id="main-file">
     // --- Variaveis globais ---------------------------//
-    let canvas, canvasContext;
+    let canvas,
+      canvasContext,
+      gameStatus = "initial";
 
     // --- Funções auxiliares --------------------------//
     function setContextColor(color) {
@@ -365,6 +361,40 @@
       canvasContext.fillText(rightEntityPoints, CTE.CANVAS_WIDTH / 2 + 30, 70);
     }
 
+    function drawGameOverMessage() {
+      setContextColor(CTE.CONTRAST_COLOR);
+      fillRect(150, CTE.CANVAS_HEIGHT / 2 - 50, 400, 100);
+
+      setContextColor(CTE.PRIMARY_COLOR);
+      canvasContext.font = "bold 60px Courier New";
+      canvasContext.fillText("FIM DE JOGO", 150, CTE.CANVAS_HEIGHT / 2);
+
+      canvasContext.font = "bold 20px Courier New";
+      canvasContext.fillText(
+        "Aperte F5 para uma nova partida",
+        160,
+        CTE.CANVAS_HEIGHT / 2 + 30
+      );
+    }
+
+    function gameOver(ballEntity) {
+      ballEntity.setSpeedX(0);
+      ballEntity.setSpeedY(0);
+      gameStatus = "over";
+    }
+
+    function verifyGameRulesBasedOn(ballEntity) {
+      let ballPosition = ballEntity.getPositionX();
+      if (ballPosition >= CTE.CANVAS_WIDTH || ballPosition <= 0) {
+        if (ballPosition >= CTE.CANVAS_WIDTH) points.player += 1;
+        if (ballPosition <= 0) points.enemy += 1;
+        ballEntity.resetBallStatus();
+      }
+
+      if (points.player == CTE.MAX_POINTS || points.enemy == CTE.MAX_POINTS) {
+        gameOver(ballEntity);
+      }
+    }
     // --- Funções principais --------------------------//
     const ball = new Ball(CTE.BALL_RADIUS, CTE.PRIMARY_COLOR);
     const player = new Player(
@@ -381,6 +411,7 @@
 
     function update() {
       ball.update();
+      verifyGameRulesBasedOn(ball);
       ball.colideWith(player) && ball.redirectBallAccordingTo(player);
       ball.colideWith(enemy) && ball.redirectBallAccordingTo(enemy);
       enemy.update(ball.getPositionY());
@@ -392,7 +423,9 @@
 
       player.render(canvasContext);
       enemy.render(canvasContext);
-      ball.render(canvasContext);
+      gameStatus == "running" && ball.render(canvasContext);
+
+      gameStatus == "over" && drawGameOverMessage();
     }
 
     window.onload = () => {
@@ -420,6 +453,7 @@
         CTE.PADDLE_BASE_SPEED
       );
 
+      gameStatus = "running";
       setInterval(() => {
         update();
         render();
