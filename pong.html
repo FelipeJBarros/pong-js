@@ -59,6 +59,10 @@
         this.#color = color;
       }
 
+      getRandomWithin(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
       getDistanceFromCenter(position) {
         return position - (this.getPositionY() + this.getHeight() / 2);
       }
@@ -166,12 +170,21 @@
         this.setSpeedY(escapeSpeed);
       }
 
+      #resetBallStatus() {
+        let previusDirectionSign = Math.sign(this.getSpeedX());
+        let newVerticalDirection = this.getRandomWithin(0, 1) > 0.5 ? 1 : -1;
+        this.setPositionX(CTE.CANVAS_WIDTH / 2);
+        this.setPositionY(CTE.CANVAS_HEIGHT / 2);
+        this.setSpeedX(CTE.BALL_BASE_SPD * previusDirectionSign);
+        this.setSpeedY(CTE.BALL_BASE_SPD * newVerticalDirection);
+      }
+
       #verifyWallColision() {
         if (
           this.getPositionX() >= CTE.CANVAS_WIDTH ||
           this.getPositionX() <= 0
         ) {
-          this.setSpeedX(this.getSpeedX() * -1);
+          this.#resetBallStatus();
         }
 
         if (
@@ -264,10 +277,6 @@
         this.#precision = precision;
       }
 
-      #getRandomWithin(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-
       init(posX, posY, spdX, spdY) {
         this.setPositionX(posX);
         this.setPositionY(posY);
@@ -286,7 +295,7 @@
       }
 
       update(ballPosition) {
-        if (this.#getRandomWithin(0, 1) >= this.getPrecision()) return;
+        if (this.getRandomWithin(0, 1) >= this.getPrecision()) return;
 
         if (
           ballPosition < this.getPositionY() ||
