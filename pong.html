@@ -25,9 +25,15 @@
       CANVAS_WIDTH: 700,
       CANVAS_HEIGHT: 500,
 
+      // Ball:
+      BALL_BASE_SPD: 7,
+      BALL_RADIUS: 8,
+
       // Paddle:
-      PADDLE_WIDTH: 120,
-      PADDLE_HEIGHT: 20,
+      PADDLE_WIDTH: 20,
+      PADDLE_HEIGHT: 120,
+      PADDLE_SPACING: 30,
+      PADDLE_BASE_SPEED: 20,
 
       //"AI":
       ENEMY_PRECISION: 0.4,
@@ -40,7 +46,277 @@
       DEBUG_FONTS: "20px Poppins, sans-serif",
     };
   </script>
-  <script id="classes"></script>
+  <script id="classes">
+    class Entity {
+      #position = { x: 0, y: 0 };
+      #speed = { x: 0, y: 0 };
+      #size = { width: 0, height: 0 };
+      #color = "#DEDEDE";
+
+      constructor(width, height, color) {
+        this.#size.width = width;
+        this.#size.height = height;
+        this.#color = color;
+      }
+
+      getDistanceFromCenter(position) {
+        return position - (this.getPositionY() + this.getHeight() / 2);
+      }
+
+      // Position getter and setter
+      getPositionX() {
+        return this.#position.x;
+      }
+
+      setPositionX(posX) {
+        this.#position.x = posX;
+      }
+
+      getPositionY() {
+        return this.#position.y;
+      }
+
+      setPositionY(posY) {
+        this.#position.y = posY;
+      }
+
+      // Speed getter and setter
+      getSpeedX() {
+        return this.#speed.x;
+      }
+
+      setSpeedX(spdX) {
+        this.#speed.x = spdX;
+      }
+
+      getSpeedY() {
+        return this.#speed.y;
+      }
+
+      setSpeedY(spdY) {
+        this.#speed.y = spdY;
+      }
+
+      // Size getter and setter
+      getWidth() {
+        return this.#size.width;
+      }
+
+      setWidth(width) {
+        this.#size.width = width;
+      }
+
+      getHeight() {
+        return this.#size.height;
+      }
+
+      setHeight(height) {
+        this.#size.height = height;
+      }
+
+      // Color getter and setter
+      getColor() {
+        return this.#color;
+      }
+
+      setColor(color) {
+        this.#color = color;
+      }
+    }
+
+    class Ball extends Entity {
+      #radius;
+
+      constructor(radius, color) {
+        super(2 * radius, 2 * radius, color);
+        this.#radius = radius;
+      }
+
+      colideWith(entity) {
+        let colideVert =
+          this.getPositionY() > entity.getPositionY() &&
+          this.getPositionY() < entity.getPositionY() + entity.getHeight();
+
+        let colideHor =
+          this.getPositionX() > entity.getPositionX() &&
+          this.getPositionX() < entity.getPositionX() + entity.getWidth();
+
+        if (colideVert && colideHor) return true;
+        return false;
+      }
+
+      #getEscapeSpeed(entity) {
+        let distFromCenter = entity.getDistanceFromCenter(ball.getPositionY());
+        let entitySliceSize = entity.getHeight() / 6;
+        let speedFactor = distFromCenter / entitySliceSize;
+        let normalizedSpeedFactor =
+          distFromCenter >= 0
+            ? Math.ceil(speedFactor)
+            : Math.floor(speedFactor);
+
+        return (
+          (CTE.BALL_BASE_SPD + Math.abs(normalizedSpeedFactor)) *
+          Math.sign(normalizedSpeedFactor)
+        );
+      }
+
+      redirectBallAccordingTo(entity) {
+        let escapeSpeed = this.#getEscapeSpeed(entity);
+        this.setSpeedX(this.getSpeedX() * -1);
+        this.setSpeedY(escapeSpeed);
+      }
+
+      #verifyWallColision() {
+        if (
+          this.getPositionX() >= CTE.CANVAS_WIDTH ||
+          this.getPositionX() <= 0
+        ) {
+          this.setSpeedX(this.getSpeedX() * -1);
+        }
+
+        if (
+          this.getPositionY() >= CTE.CANVAS_HEIGHT ||
+          this.getPositionY() <= 0
+        ) {
+          this.setSpeedY(this.getSpeedY() * -1);
+        }
+      }
+
+      init(posX, posY, spdX, spdY) {
+        this.setPositionX(posX);
+        this.setPositionY(posY);
+        this.setSpeedX(spdX);
+        this.setSpeedY(spdY);
+      }
+
+      render(context) {
+        context.fillStyle = this.getColor();
+        context.beginPath();
+        context.arc(
+          this.getPositionX(),
+          this.getPositionY(),
+          this.getRadius(),
+          0,
+          Math.PI * 2,
+          true
+        );
+        context.fill();
+      }
+
+      update() {
+        this.setPositionX(this.getPositionX() + this.getSpeedX());
+        this.setPositionY(this.getPositionY() + this.getSpeedY());
+        this.#verifyWallColision();
+      }
+
+      getRadius() {
+        return this.#radius;
+      }
+    }
+
+    class Player extends Entity {
+      constructor(width, height, color) {
+        super(width, height, color);
+      }
+
+      #setMouseListener(canvas) {
+        canvas.addEventListener("mousemove", (event) => {
+          let rect = canvas.getBoundingClientRect();
+          let root = document.documentElement;
+
+          this.update(event.clientY - rect.top - root.scrollTop);
+        });
+      }
+
+      init(posX, posY, canvas) {
+        this.#setMouseListener(canvas);
+        this.setPositionX(posX);
+        this.setPositionY(posY);
+      }
+
+      render(context) {
+        context.fillStyle = this.getColor();
+        context.fillRect(
+          this.getPositionX(),
+          this.getPositionY(),
+          this.getWidth(),
+          this.getHeight()
+        );
+      }
+
+      update(mousePositionY) {
+        if (mousePositionY === undefined) return;
+
+        if (mousePositionY >= CTE.CANVAS_HEIGHT - this.getHeight() / 2) {
+          this.setPositionY(CTE.CANVAS_HEIGHT - this.getHeight());
+        } else if (mousePositionY <= this.getHeight() / 2) {
+          this.setPositionY(0);
+        } else {
+          this.setPositionY(mousePositionY - this.getHeight() / 2);
+        }
+      }
+    }
+
+    class Enemy extends Entity {
+      #precision;
+      constructor(width, height, color, precision) {
+        super(width, height, color);
+        this.#precision = precision;
+      }
+
+      #getRandomWithin(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      init(posX, posY, spdX, spdY) {
+        this.setPositionX(posX);
+        this.setPositionY(posY);
+        this.setSpeedX(spdX);
+        this.setSpeedY(spdY);
+      }
+
+      render(context) {
+        context.fillStyle = this.getColor();
+        context.fillRect(
+          this.getPositionX(),
+          this.getPositionY(),
+          this.getWidth(),
+          this.getHeight()
+        );
+      }
+
+      update(ballPosition) {
+        if (this.#getRandomWithin(0, 1) >= this.getPrecision()) return;
+
+        if (
+          ballPosition < this.getPositionY() ||
+          ballPosition > this.getPositionY() + this.getHeight()
+        ) {
+          if (ballPosition < this.getPositionY()) {
+            this.setPositionY(this.getPositionY() - this.getSpeedY());
+          } else if (ballPosition > this.getPositionY() + this.getHeight()) {
+            this.setPositionY(this.getPositionY() + this.getSpeedY());
+          }
+
+          if (this.getPositionY() >= CTE.CANVAS_HEIGHT - this.getHeight() / 2) {
+            setPositionY(CTE.CANVAS_HEIGHT - this.getHeight() / 2);
+          }
+
+          if (this.getPositionY() <= 0) {
+            this.setPositionY(0);
+          }
+        }
+      }
+
+      getPrecision() {
+        return this.#precision;
+      }
+
+      setPrecision(precision) {
+        this.#precision = precision;
+      }
+    }
+  </script>
   <script id="main-file">
     // --- Variaveis globais ---------------------------//
     let canvas, canvasContext;
@@ -81,10 +357,33 @@
     }
 
     // --- Funções principais --------------------------//
-    function move() {}
-    function draw() {
+    const ball = new Ball(CTE.BALL_RADIUS, CTE.PRIMARY_COLOR);
+    const player = new Player(
+      CTE.PADDLE_WIDTH,
+      CTE.PADDLE_HEIGHT,
+      CTE.PRIMARY_COLOR
+    );
+    const enemy = new Enemy(
+      CTE.PADDLE_WIDTH,
+      CTE.PADDLE_HEIGHT,
+      CTE.PRIMARY_COLOR,
+      CTE.ENEMY_PRECISION
+    );
+
+    function update() {
+      ball.update();
+      ball.colideWith(player) && ball.redirectBallAccordingTo(player);
+      ball.colideWith(enemy) && ball.redirectBallAccordingTo(enemy);
+      enemy.update(ball.getPositionY());
+    }
+
+    function render() {
       drawClassicPongField();
       drawPointsOf(points.player, points.enemy);
+
+      player.render(canvasContext);
+      enemy.render(canvasContext);
+      ball.render(canvasContext);
     }
 
     window.onload = () => {
@@ -92,10 +391,29 @@
       canvasContext = canvas.getContext("2d");
 
       // Inicialização das classes
+      ball.init(
+        canvas.width / 2,
+        canvas.height / 2,
+        CTE.BALL_BASE_SPD,
+        CTE.BALL_BASE_SPD
+      );
+
+      player.init(
+        CTE.PADDLE_SPACING,
+        (CTE.CANVAS_HEIGHT - CTE.PADDLE_HEIGHT) / 2,
+        canvas
+      );
+
+      enemy.init(
+        CTE.CANVAS_WIDTH - (CTE.PADDLE_SPACING + CTE.PADDLE_WIDTH),
+        (CTE.CANVAS_HEIGHT - CTE.PADDLE_HEIGHT) / 2,
+        0,
+        CTE.PADDLE_BASE_SPEED
+      );
 
       setInterval(() => {
-        move();
-        draw();
+        update();
+        render();
       }, 1000 / CTE.FPS);
     };
   </script>
