@@ -10,7 +10,7 @@
     <canvas id="game-canvas" width="700" height="500"></canvas>
   </body>
   <script id="objects">
-    let points = {
+    const points = {
       player: 0,
       enemy: 0,
     };
@@ -139,12 +139,14 @@
 
       colideWith(entity) {
         let colideVert =
-          this.getPositionY() > entity.getPositionY() &&
-          this.getPositionY() < entity.getPositionY() + entity.getHeight();
+          this.getPositionY() + this.getRadius() >= entity.getPositionY() && // top
+          this.getPositionY() - this.getRadius() <=
+            entity.getPositionY() + entity.getHeight(); // bot
 
         let colideHor =
-          this.getPositionX() > entity.getPositionX() &&
-          this.getPositionX() < entity.getPositionX() + entity.getWidth();
+          this.getPositionX() - this.getRadius() >= entity.getPositionX() && // left
+          this.getPositionX() + this.getRadius() <=
+            entity.getPositionX() + entity.getWidth(); // right
 
         if (colideVert && colideHor) return true;
         return false;
@@ -182,8 +184,8 @@
 
       #verifyWallColision() {
         if (
-          this.getPositionY() >= CTE.CANVAS_HEIGHT ||
-          this.getPositionY() <= 0
+          this.getPositionY() + this.getRadius() > CTE.CANVAS_HEIGHT ||
+          this.getPositionY() - this.getRadius() < 0
         ) {
           this.setSpeedY(this.getSpeedY() * -1);
         }
